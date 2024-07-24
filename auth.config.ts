@@ -1,22 +1,23 @@
 import type { NextAuthConfig } from "next-auth";
+import GitHub from "next-auth/providers/github";
 
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
   },
-  providers: [],
+  providers: [GitHub],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedin = !!auth?.user;
+      // console.log('here');
+      const isLoggedIn = !!auth?.user;
+      // console.log('isLoggedIn', isLoggedIn);
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      // console.log('isOnDashboard', isOnDashboard);
 
-      // check if user has a role permission to access /admin-dashboard or /user-dashboard
-
-      const isDashboard = nextUrl.pathname.startsWith("/dashboard");
-
-      if (isDashboard) {
-        if (isLoggedin) return true;
-        return false;
-      } else if (isLoggedin) {
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // redirect unauthenticated user to login
+      } else if (isLoggedIn) {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
       return true;
