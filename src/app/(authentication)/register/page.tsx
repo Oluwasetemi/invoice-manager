@@ -1,4 +1,5 @@
-import LoginForm from "#/app/ui/forms/login";
+import RegisterForm from "#/app/ui/forms/register";
+import  Link from "next/link";
 
 export default function Example() {
   return (
@@ -12,19 +13,19 @@ export default function Example() {
               className="mx-auto h-10 w-auto"
             />
             <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-              Sign in to your account
+              Create a new account
             </h2>
           </div>
-          <LoginForm />
+          <RegisterForm />
 
           <p className="text-center text-sm leading-6 text-gray-500">
-            Not a member?{" "}
-            <a
-              href="#"
+            Do you have an account?{" "}
+            <Link
+              href="/login"
               className="font-semibold text-indigo-600 hover:text-indigo-500"
             >
-              Start a 14-day free trial
-            </a>
+              Login
+            </Link>
           </p>
         </div>
       </div>

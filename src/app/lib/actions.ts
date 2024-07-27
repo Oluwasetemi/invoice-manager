@@ -4,6 +4,14 @@ import { sql } from "@vercel/postgres";
 import { signIn } from "#/auth";
 import { User } from "./type-definitions";
 import bcrypt from 'bcrypt';
+import { Resend } from "resend";
+import { EmailTemplate } from "#/app/components/EmailTemplate";
+import { z } from 'zod'
+import { isRedirectError } from "next/dist/client/components/redirect";
+import { redirect } from "next/navigation"
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export async function authenticate(prevState: string, formData: FormData) {
   console.log("authenticating", formData);
@@ -11,28 +19,79 @@ export async function authenticate(prevState: string, formData: FormData) {
   // console.log("after");
 }
 
-export async function register(prevState: string | undefined, formData: FormData) {
-  try {
-  console.log("registering", formData);
-  const hashedPassword = await bcrypt.hash(formData.get("password") as string, 10);
+const RegisterSchema = z.object({
+  email: z.string().email().trim(),
+  password: z.string().min(8).max(100).trim(),
+  name: z.string().min(2).max(100).trim(),
+  confirmPassword: z.string().min(8).max(100).trim(),
+})
 
-  const user = {
-    email: formData.get("email") as string,
-    password: hashedPassword,
-    name: formData.get("name") as string,
-  };
-  // save the data to the user table
-   let databaseUser = await createUser(user)
+const Register = RegisterSchema.omit({ confirmPassword: true })
+const RegisterType = Register['_output']
 
-  // sign in the user and send email to welcome the new user
-  await signIn("credentials", formData);
+const FullRegisterCheck = RegisterSchema.refine((data) => data.confirmPassword === data.password, {
+  message: "Passwords do not match",
+  path: ['confirmPassword']
+})
 
-  // await sendEmail(user.email, user.name);
-} catch (error) {
-  console.error("Error registering user", error);
-  throw new Error("Failed to register user.");
+export type RegisterState = {
+  errors?: {
+    email?: string[],
+    password?: string[],
+    name?: string[],
+    confirmPassword: string[]
+  },
+  message?: string | null
 }
 
+export async function register(prevState: RegisterState, formData: FormData): Promise<RegisterState | undefined> {
+  try {
+
+    const validatedFields = FullRegisterCheck.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+      name: formData.get("name"),
+      confirmPassword: formData.get("confirm-password")
+    })
+
+    if (!validatedFields.success) {
+      return {
+        message: 'Missing required field or invalid data',
+        errors: validatedFields.error.flatten().fieldErrors
+      }
+    }
+
+    const { email, password, name } = validatedFields.data
+
+    console.log("registering", formData);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = {
+      email,
+      name,
+      password: hashedPassword,
+    };
+    // save the data to the user table
+    let createdUser = await createUser(user)
+
+    await sendEmail("Welcome to Invoice Manager", email, name);
+
+    // sign in the user and send email to welcome the new user
+    await signIn("credentials", formData);
+
+  } catch (error: Error & { code?: string }) {
+    console.error("Error registering user", error);
+
+    if (error.code === '23505') {
+      return {
+        message: 'User already exists',
+      }
+    }
+
+    if (isRedirectError(error)) {
+     redirect('/dashboard')
+    }
+  }
 }
 
 export async function getUser(email: string) {
@@ -51,24 +110,29 @@ export async function getUser(email: string) {
 }
 
 export async function createUser(user: Omit<User, 'id'>) {
-  console.log(user)
+  console.log(user);
 
-  try {
-    const saveUser = await sql`
+  const saveUser = await sql`
       INSERT INTO users (email, password, name)
       VALUES (${user.email}, ${user.password}, ${user.name})
     `;
 
+  console.log("saveUser", saveUser);
+  return saveUser;
+}
 
-    console.log("saveUser", saveUser);
-    return saveUser;
-  } catch (error: any) {
-    //
-    if ((error as Error & {code: string}).code === "23505") {
-      throw new Error("Email already in use.");
-    }
-    return {
-      message: "Failed to save user.",
-    }
+export async function sendEmail(subject: string, email: string, name: string) {
+  console.log("sendEmail", email, name);
+  // send email to welcome the new user
+  try {
+    await resend.emails.send({
+      from: "Oluwasetemi <send@oluwasetemi.dev>",
+      to: [email],
+      subject: subject,
+      react: EmailTemplate({ name, subject }),
+    })
+  } catch (error) {
+    console.error("Error sending email", error);
+    throw new Error("Failed to send email.");
   }
 }
