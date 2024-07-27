@@ -8,8 +8,8 @@ export default function LoginForm() {
 
   return (
     <form action={dispatch} className="space-y-6">
-      <div className="relative -space-y-px rounded-md shadow-sm">
-        <div className="pointer-events-none absolute inset-0 z-10 rounded-md ring-1 ring-inset ring-gray-300" />
+      <div className="relative -space-y-px rounded-md shadow-md flex flex-col gap-4 p-3 ">
+
         <div>
           <label htmlFor="email-address" className="sr-only">
             Email address
@@ -21,7 +21,7 @@ export default function LoginForm() {
             required
             placeholder="Email address"
             autoComplete="email"
-            className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="relative block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 focus:outline-none"
           />
         </div>
         <div>
@@ -35,7 +35,7 @@ export default function LoginForm() {
             required
             placeholder="Password"
             autoComplete="current-password"
-            className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="relative block w-full p-2 border-0 py-1.5 rounded-md text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 focus:outline-none"
           />
         </div>
       </div>
@@ -72,16 +72,16 @@ export default function LoginForm() {
 }
 
 function LoginButton() {
-  const { pending, data,method, action } = useFormStatus();
+  const { pending, data, method, action } = useFormStatus();
   return (
     <div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Sign in {pending && '...'}
-        </button>
-      </div>
-  )
+      <button
+        type="submit"
+        disabled={pending}
+        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        Sign in {pending && "..."}
+      </button>
+    </div>
+  );
 }
