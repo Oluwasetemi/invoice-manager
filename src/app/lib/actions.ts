@@ -79,7 +79,8 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     // sign in the user and send email to welcome the new user
     await signIn("credentials", formData);
 
-  } catch (error: Error & { code?: string }) {
+  } catch (error: any) {
+
     console.error("Error registering user", error);
 
     if (error.code === '23505') {
