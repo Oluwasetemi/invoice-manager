@@ -39,7 +39,7 @@ export type RegisterState = {
     email?: string[],
     password?: string[],
     name?: string[],
-    confirmPassword: string[]
+    confirmPassword?: string[] // Add a question mark to make it optional
   },
   message?: string | null
 }
