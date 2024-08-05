@@ -1,9 +1,10 @@
 "use client";
 import { useFormState, useFormStatus } from "react-dom";
-import { authenticate, register } from "#/app/lib/actions";
+import { authenticate, register, RegisterState } from "#/app/lib/actions";
 
 export default function RegisterForm() {
-  const [state, dispatch] = useFormState(register, undefined);
+  const initialState: RegisterState = {}
+  const [state, dispatch] = useFormState(register, initialState);
   console.log("state");
 
   return (

@@ -1,7 +1,7 @@
 import provider from '../../provider.json'
 import { db, VercelPoolClient } from '@vercel/postgres'
 
-console.log(provider.data.length)
+// console.log(provider.data.length)
 
 // create statement for the tables
 // hospital table
@@ -19,7 +19,8 @@ const hospitals = provider.data.map((item) => {
   }
 })
 
-async function seedState(client) {
+
+async function seedState(client: VercelPoolClient) {
   try {
     // create state table
     const createStateTable = await client.sql`
@@ -43,7 +44,7 @@ async function seedState(client) {
   }
 }
 
-async function seedProduct(client) {
+async function seedProduct(client: VercelPoolClient) {
   try {
     // create product table
     const createProductTable = await client.sql`
@@ -67,7 +68,7 @@ async function seedProduct(client) {
   }
 }
 
-async function seedType(client) {
+async function seedType(client: VercelPoolClient) {
   try {
     // create type table
     const createTypeTable = await client.sql`
@@ -91,7 +92,7 @@ async function seedType(client) {
   }
 }
 
-async function seedTier(client) {
+async function seedTier(client : VercelPoolClient) {
   try {
     // create tier table
     const createTierTable = await client.sql`
@@ -115,7 +116,7 @@ async function seedTier(client) {
   }
 }
 
-async function seedHospitals(client) {
+async function seedHospitals(client: VercelPoolClient, state: any, products: any, types: any, tiers: any) {
   try {
     // create hospital table
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -215,7 +216,7 @@ async function seed() {
   process.exit(0)
 }
 
-async function dropTables(client) {
+async function dropTables(client: VercelPoolClient) {
   try {
     await client.sql`DROP TABLE IF EXISTS states`
     await client.sql`DROP TABLE IF EXISTS products`

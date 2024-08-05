@@ -13,10 +13,10 @@ import { redirect } from "next/navigation"
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 
-export async function authenticate(prevState: string, formData: FormData) {
+export async function authenticate(prevState: string | void | undefined, formData: FormData) {
   console.log("authenticating", formData);
-  await signIn("credentials", formData);
-  // console.log("after");
+  let result = await signIn("credentials", formData);
+  console.log("result", result);
 }
 
 const RegisterSchema = z.object({
@@ -44,7 +44,7 @@ export type RegisterState = {
   message?: string | null
 }
 
-export async function register(prevState: RegisterState, formData: FormData): Promise<RegisterState | undefined> {
+export async function register(prevState: RegisterState, formData: FormData) {
   try {
 
     const validatedFields = FullRegisterCheck.safeParse({
@@ -79,6 +79,10 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     // sign in the user and send email to welcome the new user
     await signIn("credentials", formData);
 
+    return {
+      message: 'User registered successfully',
+    }
+
   } catch (error: any) {
 
     console.error("Error registering user", error);
@@ -89,8 +93,8 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
       }
     }
 
-    if (isRedirectError(error)) {
-     redirect('/dashboard')
+    return {
+      message: 'Failed to register user',
     }
   }
 }

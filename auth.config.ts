@@ -18,7 +18,7 @@ export const authConfig: NextAuthConfig = {
         if (isLoggedIn) return true;
         return false; // redirect unauthenticated user to login
       } else if (isLoggedIn) {
-        return Response.redirect(new URL("/dashboard", nextUrl));
+        return Response.redirect(new URL("/dashboard", nextUrl as unknown as string));
       }
       return true;
     },
