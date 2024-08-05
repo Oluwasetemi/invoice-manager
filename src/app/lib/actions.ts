@@ -14,7 +14,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 export async function authenticate(prevState: string | void | undefined, formData: FormData) {
-  console.log("authenticating", formData);
   let result = await signIn("credentials", formData);
   console.log("result", result);
 }
@@ -45,67 +44,47 @@ export type RegisterState = {
 }
 
 export async function register(prevState: RegisterState, formData: FormData) {
-  try {
+  const validatedFields = FullRegisterCheck.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    name: formData.get("name"),
+    confirmPassword: formData.get("confirm-password")
+  })
 
-    const validatedFields = FullRegisterCheck.safeParse({
-      email: formData.get("email"),
-      password: formData.get("password"),
-      name: formData.get("name"),
-      confirmPassword: formData.get("confirm-password")
-    })
-
-    if (!validatedFields.success) {
-      return {
-        message: 'Missing required field or invalid data',
-        errors: validatedFields.error.flatten().fieldErrors
-      }
-    }
-
-    const { email, password, name } = validatedFields.data
-
-    console.log("registering", formData);
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = {
-      email,
-      name,
-      password: hashedPassword,
-    };
-    // save the data to the user table
-    let createdUser = await createUser(user)
-
-    await sendEmail("Welcome to Invoice Manager", email, name);
-
-    // sign in the user and send email to welcome the new user
-    await signIn("credentials", formData);
-
+  if (!validatedFields.success) {
     return {
-      message: 'User registered successfully',
+      message: 'Missing required field or invalid data',
+      errors: validatedFields.error.flatten().fieldErrors
     }
+  }
 
-  } catch (error: any) {
+  const { email, password, name } = validatedFields.data
 
-    console.error("Error registering user", error);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (error.code === '23505') {
-      return {
-        message: 'User already exists',
-      }
-    }
+  const user = {
+    email,
+    name,
+    password: hashedPassword,
+  };
+  // save the data to the user table
+  let createdUser = await createUser(user)
 
-    return {
-      message: 'Failed to register user',
-    }
+  await sendEmail("Welcome to Invoice Manager", email, name);
+
+  // sign in the user and send email to welcome the new user
+  await signIn("credentials", formData);
+
+  return {
+    message: 'User registered successfully',
   }
 }
 
 export async function getUser(email: string) {
-  console.log("getUser", email);
   try {
     const result = await sql`
       SELECT * FROM users WHERE email = ${email}
     `;
-    console.log("result", result);
 
     return result?.rows[0] as User;
   } catch (error) {
@@ -115,19 +94,16 @@ export async function getUser(email: string) {
 }
 
 export async function createUser(user: Omit<User, 'id'>) {
-  console.log(user);
 
   const saveUser = await sql`
       INSERT INTO users (email, password, name)
       VALUES (${user.email}, ${user.password}, ${user.name})
     `;
 
-  console.log("saveUser", saveUser);
   return saveUser;
 }
 
 export async function sendEmail(subject: string, email: string, name: string) {
-  console.log("sendEmail", email, name);
   // send email to welcome the new user
   try {
     await resend.emails.send({
